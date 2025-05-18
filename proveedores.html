@@ -2,95 +2,112 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Proveedores - Citriga</title>
-  <link rel="stylesheet" href="style.css">
+  <title>Crear Proveedor / Contrato</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background: #f7f7f7;
+    }
+    h2 {
+      color: #2a7ae2;
+    }
+    label {
+      display: block;
+      margin-top: 10px;
+    }
+    input, select, textarea {
+      width: 100%;
+      padding: 8px;
+      margin-top: 4px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+    }
+    .two-columns {
+      display: flex;
+      gap: 10px;
+    }
+    .two-columns > div {
+      flex: 1;
+    }
+    .result {
+      margin-top: 20px;
+      padding: 10px;
+      background: #e8f0fe;
+      border: 1px solid #c2dbff;
+      border-radius: 5px;
+    }
+  </style>
 </head>
 <body>
-  <header>
-    <button id="menu-toggle">☰</button>
-    <h1>Proveedores</h1>
-  </header>
+  <h2>Crear Proveedor / Contrato</h2>
+  <form id="proveedorForm">
+    <label>Nombre del proveedor: <input type="text" id="nombre" required></label>
+    <label>DNI o CIF: <input type="text" id="dni"></label>
+    <label>Teléfono: <input type="text" id="telefono"></label>
+    <label>Dirección: <input type="text" id="direccion"></label>
+    <label>Población: <input type="text" id="poblacion"></label>
 
-  <nav id="sidebar" class="hidden">
-    <ul>
-      <li><a href="index.html">Inicio</a></li>
-      <li><a href="proveedores.html">Proveedores</a></li>
-      <li><a href="clientes.html">Clientes</a></li>
-      <li><a href="dashboard.html">Dashboard</a></li>
-    </ul>
-  </nav>
+    <label>Régimen fiscal:</label>
+    <label><input type="radio" name="regimen" value="general"> General</label>
+    <label><input type="radio" name="regimen" value="agrario"> Especial Agrario</label>
 
-  <div id="overlay" class="hidden"></div>
+    <label>Tipo de proveedor:</label>
+    <select id="tipoProveedor" onchange="actualizarIVA()">
+      <option value="fisica">Persona física (12% IVA)</option>
+      <option value="empresa">Empresa (4% IVA)</option>
+    </select>
 
-  <main>
-    <h2>Nuevo contrato de proveedor</h2>
-    <form id="formProveedor">
-      <label>Nombre proveedor:</label>
-      <input type="text" name="nombre" required>
-
-      <label>Fecha contrato:</label>
-      <input type="date" name="fecha" required>
-
-      <label>Variedad:</label>
-      <input type="text" name="variedad" required>
-
-      <label>Nº cajas:</label>
-      <input type="number" name="cajas" min="0">
-
-      <label>Kilos estimados:</label>
-      <input type="number" name="kilos" min="0">
-
-      <label>Estado recolección:</label>
-      <select name="estado">
-        <option value="sin_recolectar">Sin recolectar</option>
-        <option value="en_recoleccion">En recolección</option>
-        <option value="fin_recoleccion">Fin de recolección</option>
+    <label>Variedad:
+      <select id="variedad">
+        <option value="Navelina">Navelina</option>
+        <option value="Lane late">Lane late</option>
+        <option value="Valencia late">Valencia late</option>
+        <option value="Otras">Otras (especificar)</option>
       </select>
+    </label>
+    <input type="text" id="otraVariedad" placeholder="Especificar otra variedad">
 
-      <button type="submit" class="btn">Guardar proveedor</button>
-    </form>
+    <label>Precio por kilo (sin IVA): <input type="number" id="precio" step="0.01"></label>
+    <label>Estimación de kilos: <input type="number" id="kilos" step="0.01"></label>
 
-    <h3>Contratos registrados</h3>
-    <ul id="listaProveedores"></ul>
-  </main>
+    <div class="two-columns">
+      <div><label>Término: <input type="text" id="termino"></label></div>
+      <div><label>Polígono: <input type="text" id="poligono"></label></div>
+    </div>
+    <div class="two-columns">
+      <div><label>Parcela: <input type="text" id="parcela"></label></div>
+      <div><label>Partida: <input type="text" id="partida"></label></div>
+    </div>
+    <label>Campaña: <input type="text" id="campania"></label>
+    <label>Observaciones: <textarea id="observaciones" rows="3"></textarea></label>
+  </form>
+
+  <div class="result">
+    <strong>IVA aplicado:</strong> <span id="ivaTexto">12%</span><br>
+    <strong>Precio con IVA:</strong> <span id="precioConIVA">0.00</span> €/kg<br>
+    <strong>Precio total estimado (con IVA):</strong> <span id="precioTotalEstimado">0.00</span> €
+  </div>
 
   <script>
-    const toggle = document.getElementById('menu-toggle');
-    const sidebar = document.getElementById('sidebar');
-    const overlay = document.getElementById('overlay');
+    function actualizarIVA() {
+      const tipo = document.getElementById('tipoProveedor').value;
+      const ivaTexto = document.getElementById('ivaTexto');
+      const precio = parseFloat(document.getElementById('precio').value) || 0;
+      const kilos = parseFloat(document.getElementById('kilos').value) || 0;
+      let iva = tipo === 'fisica' ? 0.12 : 0.04;
 
-    toggle.addEventListener('click', () => {
-      sidebar.classList.toggle('hidden');
-      overlay.classList.toggle('hidden');
-    });
+      ivaTexto.textContent = tipo === 'fisica' ? '12%' : '4%';
+      const precioConIVA = precio * (1 + iva);
+      const total = precioConIVA * kilos;
 
-    overlay.addEventListener('click', () => {
-      sidebar.classList.add('hidden');
-      overlay.classList.add('hidden');
-    });
+      document.getElementById('precioConIVA').textContent = precioConIVA.toFixed(2);
+      document.getElementById('precioTotalEstimado').textContent = total.toFixed(2);
+    }
 
-    const form = document.getElementById('formProveedor');
-    const lista = document.getElementById('listaProveedores');
-
-    form.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const data = new FormData(form);
-      const contrato = {
-        nombre: data.get("nombre"),
-        fecha: data.get("fecha"),
-        variedad: data.get("variedad"),
-        cajas: data.get("cajas"),
-        kilos: data.get("kilos"),
-        estado: data.get("estado")
-      };
-
-      const li = document.createElement('li');
-      li.textContent = `${contrato.nombre} - ${contrato.variedad} - ${contrato.estado.replaceAll('_', ' ')}`;
-      lista.appendChild(li);
-
-      form.reset();
-    });
+    document.getElementById('precio').addEventListener('input', actualizarIVA);
+    document.getElementById('kilos').addEventListener('input', actualizarIVA);
+    document.getElementById('tipoProveedor').addEventListener('change', actualizarIVA);
   </script>
 </body>
 </html>
