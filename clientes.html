@@ -23,15 +23,12 @@
     .container {
       padding: 20px;
     }
-    h1 {
-      margin-top: 0;
-    }
-    .section {
+    .card {
       background-color: white;
-      padding: 15px;
+      padding: 20px;
       border-radius: 5px;
       box-shadow: 0 0 5px #ccc;
-      margin-top: 20px;
+      margin-bottom: 20px;
     }
     label {
       display: block;
@@ -68,21 +65,21 @@
   </div>
 
   <div class="container">
-    <h1>Gestión de Clientes</h1>
-    <div class="section">
-      <label>Nombre del cliente:</label>
-      <input type="text" id="nombreCliente" placeholder="Ej. Juan Pérez">
+    <div class="card">
+      <h2>Gestión de Clientes</h2>
+      <label>Nombre:</label>
+      <input type="text" id="nombreCliente">
 
       <label>Dirección:</label>
-      <input type="text" id="direccionCliente" placeholder="Ej. C/ Finca 25, Castellón">
+      <input type="text" id="direccionCliente">
 
       <label>Teléfono:</label>
-      <input type="text" id="telefonoCliente" placeholder="Ej. 600 000 000">
+      <input type="text" id="telefonoCliente">
 
       <button onclick="guardarCliente()">Guardar cliente</button>
     </div>
 
-    <div class="section">
+    <div class="card">
       <h3>Clientes guardados:</h3>
       <ul id="listaClientes"></ul>
     </div>
@@ -103,9 +100,11 @@
       const clientes = JSON.parse(localStorage.getItem("clientes") || "[]");
       clientes.push(nuevoCliente);
       localStorage.setItem("clientes", JSON.stringify(clientes));
+
       document.getElementById('nombreCliente').value = "";
       document.getElementById('direccionCliente').value = "";
       document.getElementById('telefonoCliente').value = "";
+
       mostrarClientes();
     }
 
