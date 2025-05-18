@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Clientes</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      background: #f9f9f9;
+    }
+    .menu {
+      background-color: #333;
+      padding: 10px;
+      color: white;
+    }
+    .menu a {
+      color: white;
+      margin-right: 15px;
+      text-decoration: none;
+    }
+    .container {
+      padding: 20px;
+    }
+    h1 {
+      margin-top: 0;
+    }
+    .section {
+      background-color: white;
+      padding: 15px;
+      border-radius: 5px;
+      box-shadow: 0 0 5px #ccc;
+      margin-top: 20px;
+    }
+    label {
+      display: block;
+      margin-top: 10px;
+    }
+    input {
+      width: 100%;
+      padding: 8px;
+      margin-top: 4px;
+      margin-bottom: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    button {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      padding: 10px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="menu">
+    <a href="index.html">Inicio</a>
+    <a href="dashboard.html">Dashboard</a>
+    <a href="clientes.html">Clientes</a>
+    <a href="registro.html">Registro</a>
+    <a href="proveedor.html">Proveedores</a>
+    <a href="resumen.html">Resumen</a>
+    <a href="listado.html">Listado</a>
+  </div>
+
+  <div class="container">
+    <h1>Gestión de Clientes</h1>
+    <div class="section">
+      <label>Nombre del cliente:</label>
+      <input type="text" id="nombreCliente" placeholder="Ej. Juan Pérez">
+
+      <label>Dirección:</label>
+      <input type="text" id="direccionCliente" placeholder="Ej. C/ Finca 25, Castellón">
+
+      <label>Teléfono:</label>
+      <input type="text" id="telefonoCliente" placeholder="Ej. 600 000 000">
+
+      <button onclick="guardarCliente()">Guardar cliente</button>
+    </div>
+
+    <div class="section">
+      <h3>Clientes guardados:</h3>
+      <ul id="listaClientes"></ul>
+    </div>
+  </div>
+
+  <script>
+    function guardarCliente() {
+      const nombre = document.getElementById('nombreCliente').value;
+      const direccion = document.getElementById('direccionCliente').value;
+      const telefono = document.getElementById('telefonoCliente').value;
+
+      if (!nombre) {
+        alert("El nombre del cliente es obligatorio.");
+        return;
+      }
+
+      const nuevoCliente = { nombre, direccion, telefono };
+      const clientes = JSON.parse(localStorage.getItem("clientes") || "[]");
+      clientes.push(nuevoCliente);
+      localStorage.setItem("clientes", JSON.stringify(clientes));
+      document.getElementById('nombreCliente').value = "";
+      document.getElementById('direccionCliente').value = "";
+      document.getElementById('telefonoCliente').value = "";
+      mostrarClientes();
+    }
+
+    function mostrarClientes() {
+      const clientes = JSON.parse(localStorage.getItem("clientes") || "[]");
+      const lista = document.getElementById('listaClientes');
+      lista.innerHTML = "";
+      clientes.forEach(c => {
+        const li = document.createElement('li');
+        li.textContent = `${c.nombre} — ${c.telefono}`;
+        lista.appendChild(li);
+      });
+    }
+
+    window.onload = mostrarClientes;
+  </script>
+
+</body>
+</html>
