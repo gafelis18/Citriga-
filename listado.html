@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Listado de Proveedores y Contratos</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      background: #f9f9f9;
+    }
+    .menu {
+      background-color: #333;
+      padding: 10px;
+      color: white;
+    }
+    .menu a {
+      color: white;
+      margin-right: 15px;
+      text-decoration: none;
+    }
+    .container {
+      padding: 20px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 40px;
+    }
+    th, td {
+      padding: 10px;
+      border: 1px solid #ccc;
+      text-align: left;
+    }
+    th {
+      background-color: #eee;
+    }
+    button {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      margin: 5px 0;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button.edit {
+      background-color: #3498db;
+      margin-right: 5px;
+    }
+    button.delete {
+      background-color: #e74c3c;
+    }
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    select {
+      padding: 6px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="menu">
+    <a href="dashboard.html">Dashboard</a>
+    <a href="clientes.html">Clientes</a>
+    <a href="registro.html">Registro</a>
+    <a href="proveedor.html">Proveedores</a>
+    <a href="resumen.html">Resumen</a>
+    <a href="listado.html">Listado</a>
+  </div>
+
+  <div class="container">
+    <div class="filters">
+      <select id="filtroVariedad">
+        <option value="">-- Filtrar por variedad --</option>
+        <option value="Clemenules">Clemenules</option>
+        <option value="Navelina">Navelina</option>
+        <option value="Navel">Navel</option>
+        <option value="Lane Late">Lane Late</option>
+        <option value="Salustiana">Salustiana</option>
+        <option value="Valencia Late">Valencia Late</option>
+        <option value="Sanguina">Sanguina</option>
+        <option value="Oronules">Oronules</option>
+        <option value="Hernandina">Hernandina</option>
+        <option value="Marisol">Marisol</option>
+        <option value="Orri">Orri</option>
+        <option value="Tango">Tango</option>
+        <option value="Nadorcott">Nadorcott</option>
+        <option value="Otra">Otra</option>
+      </select>
+
+      <select id="filtroAnio">
+        <option value="">-- Filtrar por año --</option>
+      </select>
+
+      <button onclick="exportarExcel()">Exportar a Excel</button>
+      <button onclick="exportarPDF()">Exportar a PDF</button>
+    </div>
+
+    <h2>Proveedores</h2>
+    <table id="tablaProveedores">
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Dirección</th>
+          <th>Tipo</th>
+          <th>Precio (con IVA)</th>
+          <th>Variedad</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <h2>Contratos</h2>
+    <table id="tablaContratos">
+      <thead>
+        <tr>
+          <th>Nº Contrato</th>
+          <th>Año</th>
+          <th>Proveedor</th>
+          <th>Variedad</th>
+          <th>Kilos</th>
+          <th>Precio (con IVA)</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+<script>
+  const proveedores = JSON.parse(localStorage.getItem("proveedores") || "[]");
+  const contratos = JSON.parse(localStorage.getItem("contratos") || "[]");
+
+  function cargarFiltros() {
+    const filtroAnio = document.getElementById("filtroAnio");
+    const años = [...new Set(contratos.map(c => c.año))].sort((a, b) => b - a);
+    años.forEach(a => {
+      const option = document.createElement("option");
+      option.value = a;
+      option.textContent = a;
+      filtroAnio.appendChild(option);
+    });
+
+    document.getElementById("filtroVariedad").onchange = cargarTodo;
+    document.getElementById("filtroAnio").onchange = cargarTodo;
+  }
+
+  function cargarTodo() {
+    cargarProveedores();
+    cargarContratos();
+  }
+
+  function cargarProveedores() {
+    const filtroVariedad = document.getElementById("filtroVariedad").value;
+    const tbody = document.querySelector("#tablaProveedores tbody");
+    tbody.innerHTML = "";
+    proveedores
+      .filter(p => !filtroVariedad || p.variedad === filtroVariedad)
+      .forEach((p, index) => {
+        const fila = document.createElement("tr");
+        fila.innerHTML = `
+          <td>${p.nombre}</td>
+          <td>${p.direccion}</td>
+          <td>${p.tipo}</td>
+          <td>${p.precio?.toFixed(2) || ""}</td>
+          <td>${p.variedad}</td>
+          <td>
+            <button class="edit" onclick="editarProveedor(${index})">Editar</button>
+            <button class="delete" onclick="eliminarProveedor(${index})">Eliminar</button>
+          </td>
+        `;
+        tbody.appendChild(fila);
+      });
+  }
+
+  function cargarContratos() {
+    const filtroAnio = document.getElementById("filtroAnio").value;
+    const filtroVariedad = document.getElementById("filtroVariedad").value;
+    const tbody = document.querySelector("#tablaContratos tbody");
+    tbody.innerHTML = "";
+    contratos
+      .filter(c => (!filtroAnio || c.año == filtroAnio) && (!filtroVariedad || c.variedad === filtroVariedad))
+      .forEach((c, index) => {
+        const proveedor = proveedores.find(p => p.id == c.proveedorId);
+        const nombreProveedor = proveedor ? proveedor.nombre : "—";
+        const fila = document.createElement("tr");
+        fila.innerHTML = `
+          <td>${c.numeroContrato}</td>
+          <td>${c.año}</td>
+          <td>${nombreProveedor}</td>
+          <td>${c.variedad}</td>
+          <td>${c.kilos}</td>
+          <td>${c.total?.toFixed(2) || ""}</td>
+          <td>
+            <button class="edit" onclick="editarContrato(${index})">Editar</button>
+            <button class="delete" onclick="eliminarContrato(${index})">Eliminar</button>
+          </td>
+        `;
+        tbody.appendChild(fila);
+      });
+  }
+
+  function eliminarProveedor(index) {
+    if (confirm("¿Eliminar este proveedor?")) {
+      proveedores.splice(index, 1);
+      localStorage.setItem("proveedores", JSON.stringify(proveedores));
+      cargarProveedores();
+    }
+  }
+
+  function eliminarContrato(index) {
+    if (confirm("¿Eliminar este contrato?")) {
+      contratos.splice(index, 1);
+      localStorage.setItem("contratos", JSON.stringify(contratos));
+      cargarContratos();
+    }
+  }
+
+  function editarProveedor(index) {
+    const proveedor = proveedores[index];
+    const nuevoNombre = prompt("Nuevo nombre:", proveedor.nombre);
+    if (nuevoNombre !== null) {
+      proveedor.nombre = nuevoNombre;
+      localStorage.setItem("proveedores", JSON.stringify(proveedores));
+      cargarProveedores();
+    }
+  }
+
+  function editarContrato(index) {
+    const contrato = contratos[index];
+    const nuevaVariedad = prompt("Nueva variedad:", contrato.variedad);
+    if (nuevaVariedad !== null) {
+      contrato.variedad = nuevaVariedad;
+      localStorage.setItem("contratos", JSON.stringify(contratos));
+      cargarContratos();
+    }
+  }
+
+  function nombreArchivo(base) {
+    const filtroAnio = document.getElementById("filtroAnio").value;
+    const filtroVariedad = document.getElementById("filtroVariedad").value;
+    let nombre = base;
+    if (filtroAnio) nombre += "_" + filtroAnio;
+    if (filtroVariedad) nombre += "_" + filtroVariedad;
+    return nombre;
+  }
+
+  function exportarExcel() {
+    const wb = XLSX.utils.book_new();
+    const filtroAnio = document.getElementById("filtroAnio").value;
+    const filtroVariedad = document.getElementById("filtroVariedad").value;
+
+    const datosProveedores = [["Nombre", "Dirección", "Tipo", "Precio (con IVA)", "Variedad"]];
+    proveedores
+      .filter(p => !filtroVariedad || p.variedad === filtroVariedad)
+      .forEach(p => {
+        datosProveedores.push([
+          p.nombre, p.direccion, p.tipo, p.precio?.toFixed(2) || "", p.variedad
+        ]);
+      });
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(datosProveedores), "Proveedores");
+
+    const datosContratos = [["Nº Contrato", "Año", "Proveedor", "Variedad", "Kilos", "Precio (con IVA)"]];
+    contratos
+      .filter(c => (!filtroAnio || c.año == filtroAnio) && (!filtroVariedad || c.variedad === filtroVariedad))
+      .forEach(c => {
+        const proveedor = proveedores.find(p => p.id == c.proveedorId);
+        const nombreProveedor = proveedor ? proveedor.nombre : "—";
+        datosContratos.push([
+          c.numeroContrato, c.año, nombreProveedor, c.variedad, c.kilos, c.total?.toFixed(2) || ""
+        ]);
+      });
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(datosContratos), "Contratos");
+
+    const archivoNombre = nombreArchivo("listado") + ".xlsx";
+    XLSX.writeFile(wb, archivoNombre);
+  }
+
+  async function exportarPDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    const filtroAnio = document.getElementById("filtroAnio").value;
+    const filtroVariedad = document.getElementById("filtroVariedad").value;
+
+    doc.text("Listado de Proveedores", 14, 14);
+    const datosProveedores = proveedores
+      .filter(p => !filtroVariedad || p.variedad === filtroVariedad)
+      .map(p => [
+        p.nombre, p.direccion, p.tipo, p.precio?.toFixed(2) || "", p.variedad
+      ]);
+    doc.autoTable({
+      startY: 18,
+      head: [["Nombre", "Dirección", "Tipo", "Precio (con IVA)", "Variedad"]],
+      body: datosProveedores
+    });
+
+    let finalY = doc.lastAutoTable.finalY + 10;
+    doc.text("Listado de Contratos", 14, finalY);
+    const datosContratos = contratos
+      .filter(c => (!filtroAnio || c.año == filtroAnio) && (!filtroVariedad || c.variedad === filtroVariedad))
+      .map(c => {
+        const proveedor = proveedores.find(p => p.id == c.proveedorId);
+        const nombreProveedor = proveedor ? proveedor.nombre : "—";
+        return [
+          c.numeroContrato, c.año, nombreProveedor, c.variedad, c.kilos, c.total?.toFixed(2) || ""
+        ];
+      });
+    doc.autoTable({
+      startY: finalY + 4,
+      head: [["Nº", "Año", "Proveedor", "Variedad", "Kilos", "Precio (con IVA)"]],
+      body: datosContratos
+    });
+
+    const archivoNombre = nombreArchivo("listado") + ".pdf";
+    doc.save(archivoNombre);
+  }
+
+  cargarFiltros();
+  cargarTodo();
+</script>
+</body>
+</html>
