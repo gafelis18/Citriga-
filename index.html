@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Iniciar sesión - Citriga</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="manifest" href="manifest.json">
+</head>
+<body>
+  <div class="login-container">
+    <h1>Citriga</h1>
+    <form id="loginForm">
+      <input type="email" id="email" placeholder="Correo electrónico" required>
+      <input type="password" id="password" placeholder="Contraseña" required>
+      <button type="submit">Iniciar sesión</button>
+      <p id="toggleRegister">¿No tienes cuenta? <a href="#" onclick="toggleRegister()">Regístrate</a></p>
+    </form>
+
+    <form id="registerForm" style="display:none;">
+      <input type="email" id="regEmail" placeholder="Correo electrónico" required>
+      <input type="password" id="regPassword" placeholder="Contraseña" required>
+      <button type="submit">Registrarse</button>
+      <p id="toggleLogin">¿Ya tienes cuenta? <a href="#" onclick="toggleLogin()">Inicia sesión</a></p>
+    </form>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js"></script>
+  <script src="firebase-config.js"></script>
+  <script>
+    const loginForm = document.getElementById('loginForm');
+    const registerForm = document.getElementById('registerForm');
+
+    function toggleRegister() {
+      loginForm.style.display = 'none';
+      registerForm.style.display = 'block';
+    }
+
+    function toggleLogin() {
+      registerForm.style.display = 'none';
+      loginForm.style.display = 'block';
+    }
+
+    loginForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      firebase.auth().signInWithEmailAndPassword(email, password)
+        .then(() => window.location.href = 'dashboard.html')
+        .catch(err => alert(err.message));
+    });
+
+    registerForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const email = document.getElementById('regEmail').value;
+      const password = document.getElementById('regPassword').value;
+      firebase.auth().createUserWithEmailAndPassword(email, password)
+        .then(() => window.location.href = 'dashboard.html')
+        .catch(err => alert(err.message));
+    });
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js')
+        .then(() => console.log('Service Worker registrado correctamente.'));
+    }
+  </script>
+</body>
+</html>
