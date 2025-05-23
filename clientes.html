@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Clientes - Citriga</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <img src="logo.png" alt="Logo Citriga" class="logo-header">
+    <h1>Clientes</h1>
+    <nav>
+      <a href="dashboard.html">Dashboard</a>
+      <a href="proveedores.html">Proveedores</a>
+      <a href="contratos.html">Contratos</a>
+      <a href="albaranes.html">Albaranes</a>
+      <a href="anticipos.html">Anticipos</a>
+      <a href="factura.html">Facturas</a>
+    </nav>
+  </header>
+
+  <main>
+    <form id="clienteForm">
+      <input type="text" id="nombre" placeholder="Nombre comercio" required>
+      <input type="text" id="direccion" placeholder="Dirección" required>
+      <input type="text" id="telefono" placeholder="Teléfono" required>
+      <button type="submit">Guardar Cliente</button>
+    </form>
+
+    <ul id="listaClientes"></ul>
+  </main>
+
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="app.js"></script>
+  <script>
+    const db = firebase.firestore();
+    const form = document.getElementById('clienteForm');
+    const lista = document.getElementById('listaClientes');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const nombre = document.getElementById('nombre').value;
+      const direccion = document.getElementById('direccion').value;
+      const telefono = document.getElementById('telefono').value;
+
+      await db.collection('clientes').add({ nombre, direccion, telefono });
+      form.reset();
+      cargarClientes();
+    });
+
+    async function cargarClientes() {
+      lista.innerHTML = '';
+      const snapshot = await db.collection('clientes').get();
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        const li = document.createElement('li');
+        li.textContent = `${data.nombre} - ${data.direccion} - ${data.telefono}`;
+        lista.appendChild(li);
+      });
+    }
+
+    cargarClientes();
+  </script>
+</body>
+</html>
