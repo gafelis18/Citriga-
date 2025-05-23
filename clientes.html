@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Clientes - Citriga</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <img src="logo.png" alt="Logo Citriga" class="logo-header">
+    <h1>Clientes</h1>
+    <nav>
+      <a href="index.html">Inicio</a>
+      <a href="proveedores.html">Proveedores</a>
+      <a href="contratos.html">Contratos</a>
+      <a href="albaranes.html">Albaranes</a>
+      <a href="anticipos.html">Anticipos</a>
+      <a href="factura.html">Facturas</a>
+    </nav>
+  </header>
+
+  <main>
+    <form id="clienteForm">
+      <input type="hidden" id="clienteId">
+      <input type="text" id="nombre" placeholder="Nombre del cliente" required>
+      <input type="text" id="nif" placeholder="NIF / CIF" required>
+      <input type="text" id="direccion" placeholder="Dirección" required>
+      <select id="provincia" required>
+        <option value="">Selecciona provincia</option>
+        <option>Álava</option><option>Albacete</option><option>Alicante</option><option>Almería</option>
+        <option>Asturias</option><option>Ávila</option><option>Badajoz</option><option>Barcelona</option>
+        <option>Burgos</option><option>Cáceres</option><option>Cádiz</option><option>Cantabria</option>
+        <option>Castellón</option><option>Ciudad Real</option><option>Córdoba</option><option>Cuenca</option>
+        <option>Gerona</option><option>Granada</option><option>Guadalajara</option><option>Guipúzcoa</option>
+        <option>Huelva</option><option>Huesca</option><option>Islas Baleares</option><option>Jaén</option>
+        <option>La Coruña</option><option>La Rioja</option><option>Las Palmas</option><option>León</option>
+        <option>Lérida</option><option>Lugo</option><option>Madrid</option><option>Málaga</option>
+        <option>Murcia</option><option>Navarra</option><option>Orense</option><option>Palencia</option>
+        <option>Pontevedra</option><option>Salamanca</option><option>Santa Cruz de Tenerife</option>
+        <option>Segovia</option><option>Sevilla</option><option>Soria</option><option>Tarragona</option>
+        <option>Teruel</option><option>Toledo</option><option>Valencia</option><option>Valladolid</option>
+        <option>Vizcaya</option><option>Zamora</option><option>Zaragoza</option><option>Ceuta</option><option>Melilla</option>
+      </select>
+      <button type="submit">Guardar</button>
+    </form>
+
+    <h2>Clientes guardados</h2>
+    <ul id="listaClientes"></ul>
+  </main>
+
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"></script>
+  <script src="firebase-config.js"></script>
+  <script>
+    const db = firebase.firestore();
+    const form = document.getElementById('clienteForm');
+    const lista = document.getElementById('listaClientes');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const id = document.getElementById('clienteId').value;
+      const nombre = document.getElementById('nombre').value;
+      const nif = document.getElementById('nif').value;
+      const direccion = document.getElementById('direccion').value;
+      const provincia = document.getElementById('provincia').value;
+
+      const clienteData = { nombre, nif, direccion, provincia };
+
+      if (id) {
+        await db.collection('clientes').doc(id).update(clienteData);
+      } else {
+        await db.collection('clientes').add(clienteData);
+      }
+
+      form.reset();
+      document.getElementById('clienteId').value = '';
+      cargarClientes();
+    });
+
+    async function cargarClientes() {
+      lista.innerHTML = '';
+      const snapshot = await db.collection('clientes').get();
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        const li = document.createElement('li');
+        li.innerHTML = `
+          <strong>${data.nombre}</strong> (${data.nif})<br>
+          ${data.direccion}, ${data.provincia}
+          <br>
+          <button onclick="editarCliente('${doc.id}', '${data.nombre}', '${data.nif}', '${data.direccion}', '${data.provincia}')">Editar</button>
+          <button onclick="eliminarCliente('${doc.id}')">Eliminar</button>
+        `;
+        lista.appendChild(li);
+      });
+    }
+
+    function editarCliente(id, nombre, nif, direccion, provincia) {
+      document.getElementById('clienteId').value = id;
+      document.getElementById('nombre').value = nombre;
+      document.getElementById('nif').value = nif;
+      document.getElementById('direccion').value = direccion;
+      document.getElementById('provincia').value = provincia;
+    }
+
+    async function eliminarCliente(id) {
+      if (confirm("¿Eliminar este cliente?")) {
+        await db.collection('clientes').doc(id).delete();
+        cargarClientes();
+      }
+    }
+
+    cargarClientes();
+  </script>
+</body>
+</html>
