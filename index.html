@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Citriga App</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="manifest" href="manifest.json">
+</head>
+<body>
+  <header>
+    <h1>Citriga</h1>
+  </header>
+  <main>
+    <div class="menu">
+      <a href="dashboard.html">Dashboard</a>
+      <a href="comercios.html">Comercios</a>
+      <a href="albaranes.html">Albaranes</a>
+      <a href="contratos.html">Contratos</a>
+      <a href="agricultores.html">Agricultores</a>
+      <a href="anticipos.html">Anticipos</a>
+      <a href="factura.html">Factura</a>
+      <a href="listas.html">Listas</a>
+    </div>
+  </main>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js');
+    }
+  </script>
+</body>
+</html>
